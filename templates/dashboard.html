@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>{{ greeting }}, {{ first_name }}</h1>
+    <p class="muted">{{ today }}</p>
+  </div>
+</header>
+
+<section class="grid stats">
+  <article class="card stat">
+    <span class="stat-label">Productivity</span>
+    <span class="stat-value"><span class="count" data-target="{{ stats.productivity }}">0</span>%</span>
+    <div class="bar"><span data-progress="{{ stats.productivity }}"></span></div>
+  </article>
+  <article class="card stat">
+    <span class="stat-label">Completed tasks</span>
+    <span class="stat-value count" data-target="{{ stats.done }}">0</span>
+  </article>
+  <article class="card stat">
+    <span class="stat-label">Total tasks</span>
+    <span class="stat-value count" data-target="{{ stats.total }}">0</span>
+  </article>
+  <article class="card stat">
+    <span class="stat-label">Diary entries</span>
+    <span class="stat-value count" data-target="{{ stats.entries }}">0</span>
+  </article>
+  <article class="card stat">
+    <span class="stat-label">Current mood</span>
+    {% if stats.current_mood %}
+      <span class="stat-value stat-mood">{{ mood_map[stats.current_mood].emoji }}
+        <small>{{ mood_map[stats.current_mood].label }}</small></span>
+    {% else %}
+      <span class="stat-value stat-empty">Not set</span>
+    {% endif %}
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Today's focus</h2>
+    {% if focus %}
+      <ul class="focus-list">
+        {% for t in focus %}
+        <li>
+          <form method="post" action="{{ url_for('tasks') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="toggle">
+            <input type="hidden" name="id" value="{{ t.id }}">
+            <input type="hidden" name="next" value="dashboard">
+            <button class="check" type="submit" aria-label="Mark '{{ t.title }}' complete"></button>
+          </form>
+          <span class="focus-title">{{ t.title }}</span>
+          <span class="badge badge-{{ t.priority }}">{{ t.priority }}</span>
+          {% if t.overdue %}<span class="badge badge-overdue">overdue</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">Nothing open right now. Add a task below to set your focus.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('tasks') }}" class="inline-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="next" value="dashboard">
+      <input type="text" name="title" placeholder="Quick add a task" maxlength="120" aria-label="Quick add a task" required>
+      <button class="btn" type="submit">Add</button>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>How are you feeling?</h2>
+    <form method="post" action="{{ url_for('mood') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="next" value="dashboard">
+      <div class="mood-grid">
+        {% for m in moods %}
+        <button class="mood-btn" type="submit" name="mood" value="{{ m.key }}">
+          <span class="mood-emoji">{{ m.emoji }}</span><span>{{ m.label }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </form>
+    <div class="insight">
+      <h3>Personal Reflection Insight</h3>
+      <p>{{ insight }}</p>
+      <small class="muted">A self-reflection aid, not medical advice.</small>
+    </div>
+  </article>
+</section>
+{% endblock %}

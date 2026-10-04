@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- Theme and mode come from the user's saved settings -->
+<html lang="en" data-theme="{{ user.theme if user else 'lime' }}" data-mode="{{ user.mode if user else 'dark' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NeonMind{% endblock %} | NeonMind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{{ 'app' if user else 'auth' }}">
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  {% macro flashes() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-stack" role="status">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+  {% endmacro %}
+
+  {% if user %}
+    <!-- Mobile top bar with hamburger -->
+    <header class="topbar">
+      <button class="hamburger" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="logo logo-sm"><span class="logo-mark">N</span>NeonMind</span>
+    </header>
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <a href="{{ url_for('dashboard') }}" class="logo"><span class="logo-mark">N</span>NeonMind</a>
+      <nav class="nav">
+        {% set links = [('dashboard','◈','Dashboard'),('tasks','✓','Tasks'),('diary','✎','Diary'),
+                        ('mood','☺','Mood'),('analytics','▤','Analytics'),('settings','⚙','Settings')] %}
+        {% for endpoint, icon, label in links %}
+          <a href="{{ url_for(endpoint) }}" class="{{ 'active' if request.endpoint == endpoint }}">
+            <span class="nav-icon">{{ icon }}</span>{{ label }}
+          </a>
+        {% endfor %}
+      </nav>
+      <div class="sidebar-foot">
+        <div class="who"><span class="avatar">{{ user.name[0]|upper }}</span>
+          <span class="who-text"><strong>{{ user.name }}</strong><small>{{ user.email }}</small></span></div>
+        <form method="post" action="{{ url_for('logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-ghost btn-block" type="submit">Log out</button>
+        </form>
+      </div>
+    </aside>
+
+    <main class="content">
+      {{ flashes() }}
+      {% block content %}{% endblock %}
+    </main>
+  {% else %}
+    <main class="auth-wrap">
+      {{ flashes() }}
+      {% block auth %}{% endblock %}
+    </main>
+  {% endif %}
+<script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

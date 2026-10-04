@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block auth %}
+<section class="card auth-card">
+  <div class="logo logo-lg"><span class="logo-mark">N</span>NeonMind</div>
+  <p class="muted center">Create your free workspace.</p>
+  <form method="post" action="{{ url_for('signup') }}" class="stack js-match">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Name
+      <input type="text" name="name" value="{{ form.get('name','') }}" maxlength="60" autocomplete="name" required autofocus>
+    </label>
+    <label>Email
+      <input type="email" name="email" value="{{ form.get('email','') }}" autocomplete="email" required>
+    </label>
+    <label>Password
+      <input type="password" name="password" minlength="8" autocomplete="new-password" required>
+      <small class="muted">At least 8 characters.</small>
+    </label>
+    <label>Confirm password
+      <input type="password" name="confirm" minlength="8" autocomplete="new-password" required>
+    </label>
+    <button class="btn btn-block" type="submit">Create account</button>
+  </form>
+  <p class="muted center">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+</section>
+{% endblock %}

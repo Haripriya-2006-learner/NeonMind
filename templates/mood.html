@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Mood{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>Mood tracker</h1>
+  <p class="muted">Check in as often as you like.</p></div></header>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Log your mood</h2>
+    <form method="post" action="{{ url_for('mood') }}" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mood-grid">
+        {% for m in moods %}
+        <label class="mood-opt">
+          <input type="radio" name="mood" value="{{ m.key }}" required>
+          <span class="mood-face"><span class="mood-emoji">{{ m.emoji }}</span><span>{{ m.label }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+      <label>Note (optional)
+        <input type="text" name="note" maxlength="200" placeholder="What is behind this mood?">
+      </label>
+      <div><button class="btn" type="submit">Save mood</button></div>
+    </form>
+  </article>
+
+  <article class="card insight-card">
+    <h2>Personal Reflection Insight</h2>
+    {% if reflection %}
+      <p class="insight-text">{{ mood_map[latest_key].emoji }} {{ reflection }}</p>
+    {% else %}
+      <p class="empty">Save a mood to see a reflection prompt.</p>
+    {% endif %}
+    {% if avg %}
+      <p class="muted">Last 30 days: average <strong class="accent">{{ avg }}/5</strong>, closest to
+        {{ mood_map[nearest].emoji }} {{ mood_map[nearest].label }}.
+        {% if top %}Most frequent: {{ top.emoji }} {{ top.label }} ({{ top.count }} of {{ month_count }}).{% endif %}</p>
+    {% endif %}
+    <small class="muted">A self-reflection aid, not a medical diagnosis. If you feel low for a long time, consider talking to someone you trust or a health professional.</small>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Mood frequency</h2>
+    {% if month_count %}
+      {% for f in freq %}
+      <div class="freq-row">
+        <span class="freq-label">{{ f.emoji }} {{ f.label }}</span>
+        <div class="bar"><span data-progress="{{ f.percent }}"></span></div>
+        <span class="freq-num">{{ f.count }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">No moods in the last 30 days.</p>
+    {% endif %}
+  </article>
+
+  <article class="card">
+    <h2>Mood history</h2>
+    {% if history %}
+    <ul class="history">
+      {% for h in history %}
+      <li>
+        <span class="history-emoji">{{ mood_map[h.mood].emoji }}</span>
+        <div class="history-body">
+          <strong>{{ mood_map[h.mood].label }}</strong>
+          <small class="muted">{{ h.created_at|pretty_dt }}{% if h.note %} · {{ h.note }}{% endif %}</small>
+        </div>
+        <form method="post" action="{{ url_for('mood') }}" data-confirm="Remove this mood entry?">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="id" value="{{ h.id }}">
+          <button class="icon-btn" type="submit" aria-label="Remove mood entry">✕</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+      <p class="empty">Your mood history will appear here.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

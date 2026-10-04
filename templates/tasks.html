@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Tasks{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div><h1>Tasks</h1>
+    <p class="muted"><span class="accent">{{ stats.done }}</span> of {{ stats.total }} completed</p></div>
+  <div class="progress-wide">
+    <div class="bar bar-lg"><span data-progress="{{ stats.productivity }}"></span></div>
+    <small class="muted">{{ stats.productivity }}% done</small>
+  </div>
+</header>
+
+<section class="card">
+  <h2>Add a task</h2>
+  <form method="post" action="{{ url_for('tasks') }}" class="task-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="add">
+    <input type="hidden" name="filter" value="{{ flt }}">
+    <label class="grow">Task
+      <input type="text" name="title" maxlength="120" placeholder="What needs to get done?" required>
+    </label>
+    <label>Priority
+      <select name="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+    </label>
+    <label>Due date
+      <input type="date" name="due_date">
+    </label>
+    <button class="btn" type="submit">Add task</button>
+  </form>
+</section>
+
+<nav class="filters" aria-label="Filter tasks">
+  {% for key, label in [('all','All'),('active','Active'),('completed','Completed'),('high','High priority'),('overdue','Overdue')] %}
+    <a href="{{ url_for('tasks', filter=key) }}" class="chip {{ 'active' if flt == key }}">{{ label }} <b>{{ counts[key] }}</b></a>
+  {% endfor %}
+</nav>
+
+<section class="task-list">
+  {% for t in items %}
+  <article class="card task {{ 'done' if t.completed }}">
+    <form method="post" action="{{ url_for('tasks') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="toggle">
+      <input type="hidden" name="id" value="{{ t.id }}">
+      <input type="hidden" name="filter" value="{{ flt }}">
+      <button class="check {{ 'checked' if t.completed }}" type="submit"
+              aria-label="{{ 'Mark incomplete' if t.completed else 'Mark complete' }}">{{ '✓' if t.completed }}</button>
+    </form>
+    <div class="task-body">
+      <strong class="task-title">{{ t.title }}</strong>
+      <div class="task-meta">
+        <span class="badge badge-{{ t.priority }}">{{ t.priority }}</span>
+        {% if t.due_date %}<span class="muted">Due {{ t.due_date|pretty_date }}</span>{% endif %}
+        {% if t.overdue %}<span class="badge badge-overdue">overdue</span>{% endif %}
+      </div>
+    </div>
+    <div class="task-actions">
+      <button type="button" class="btn btn-ghost btn-sm edit-btn"
+              data-id="{{ t.id }}" data-title="{{ t.title }}" data-priority="{{ t.priority }}"
+              data-due="{{ t.due_date or '' }}">Edit</button>
+      <form method="post" action="{{ url_for('tasks') }}" data-confirm="Delete this task?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="id" value="{{ t.id }}">
+        <input type="hidden" name="filter" value="{{ flt }}">
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+    </div>
+  </article>
+  {% else %}
+  <p class="card empty">No tasks here yet. Add one above to get moving.</p>
+  {% endfor %}
+</section>
+
+<!-- Edit dialog (filled in by app.js) -->
+<dialog class="modal card" id="editDialog">
+  <form method="post" action="{{ url_for('tasks') }}" class="stack">
+    <h2>Edit task</h2>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="edit">
+    <input type="hidden" name="filter" value="{{ flt }}">
+    <input type="hidden" name="id" id="editId">
+    <label>Task <input type="text" name="title" id="editTitle" maxlength="120" required></label>
+    <label>Priority
+      <select name="priority" id="editPriority">
+        <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+      </select>
+    </label>
+    <label>Due date <input type="date" name="due_date" id="editDue"></label>
+    <div class="row">
+      <button class="btn" type="submit">Save changes</button>
+      <button class="btn btn-ghost" type="button" id="editCancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

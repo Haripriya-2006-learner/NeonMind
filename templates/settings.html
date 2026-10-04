@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>Settings</h1>
+  <p class="muted">Profile, appearance and account.</p></div></header>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Profile</h2>
+    <form method="post" action="{{ url_for('settings') }}" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="profile">
+      <label>Name <input type="text" name="name" value="{{ user.name }}" maxlength="60" required></label>
+      <label>Email <input type="email" name="email" value="{{ user.email }}" required></label>
+      <div><button class="btn" type="submit">Save profile</button></div>
+    </form>
+  </article>
+
+  <article class="card">
+    <h2>Appearance</h2>
+    <form method="post" action="{{ url_for('settings') }}" class="stack" id="appearanceForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="appearance">
+      <fieldset>
+        <legend>Theme</legend>
+        <div class="swatches">
+          {% for key, label in themes.items() %}
+          <label class="swatch-opt">
+            <input type="radio" name="theme" value="{{ key }}" {{ 'checked' if user.theme == key }}>
+            <span class="swatch-face"><i class="swatch" data-theme="{{ key }}"></i>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Mode</legend>
+        <div class="swatches">
+          <label class="swatch-opt"><input type="radio" name="mode" value="dark" {{ 'checked' if user.mode == 'dark' }}>
+            <span class="swatch-face">Dark</span></label>
+          <label class="swatch-opt"><input type="radio" name="mode" value="light" {{ 'checked' if user.mode == 'light' }}>
+            <span class="swatch-face">Light</span></label>
+        </div>
+      </fieldset>
+      <div><button class="btn" type="submit">Save settings</button></div>
+    </form>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Change password</h2>
+    <form method="post" action="{{ url_for('settings') }}" class="stack js-match">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="password">
+      <label>Current password <input type="password" name="current" autocomplete="current-password" required></label>
+      <label>New password <input type="password" name="new" minlength="8" autocomplete="new-password" required></label>
+      <label>Confirm new password <input type="password" name="confirm" minlength="8" autocomplete="new-password" required></label>
+      <div><button class="btn" type="submit">Update password</button></div>
+    </form>
+  </article>
+  <article class="card">
+    <h2>Session</h2>
+    <p class="muted">Log out on this device. Your data stays saved.</p>
+    <form method="post" action="{{ url_for('logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-danger" type="submit">Log out</button>
+    </form>
+  </article>
+</section>
+{% endblock %}
